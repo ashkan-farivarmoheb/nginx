@@ -3,9 +3,6 @@ name: Create SSL
 on:
   workflow_dispatch: # Enable manual triggering
     inputs:
-      target-env:
-        required: true
-        type: string
       domain:
         required: true
         type: string
@@ -32,8 +29,6 @@ jobs:
     permissions:
       contents: none
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.target-env }}
 
     steps:
       - name: Checkout code
@@ -102,9 +97,9 @@ jobs:
         working-directory: terraform
         
       - name: Plan Terraform changes
-        run: terraform plan -var-file=tfvars/main.auto.tfvars
+        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}"
         working-directory: terraform
         
       - name: Apply Terraform changes
-        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars
+        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domian_name=${{ inputs.domain }}"
         working-directory: terraform

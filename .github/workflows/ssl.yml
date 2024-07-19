@@ -72,18 +72,6 @@ jobs:
             ./ecr_query.sh $ECR_REPOSITORY $IMAGE_TAG
         working-directory: scripts
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ env.ecr_repository }}
-          IMAGE_TAG: ${{ env.ecr_image_tag }}
-        if: steps.ecr-image-exists.outputs.image_tag == ''
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -104,3 +92,15 @@ jobs:
       - name: Apply Terraform changes
         run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domian_name=${{ inputs.domain }}"
         working-directory: terraform
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ecr_repository }}
+          IMAGE_TAG: ${{ env.ecr_image_tag }}
+        if: steps.ecr-image-exists.outputs.image_tag == ''
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"

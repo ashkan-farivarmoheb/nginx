@@ -3,7 +3,7 @@ terraform {
   required_version = ">= 1.1.0"
 
   backend "s3" {
-    key            = "terraform.tfstate"  # This is the path to the state file in the bucket
+    key            = "odoo/terraform.tfstate"  # This is the path to the state file in the bucket
   }
 
   required_providers {

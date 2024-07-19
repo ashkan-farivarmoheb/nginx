@@ -67,7 +67,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ env.ecr_repository }}
           IMAGE_TAG: ${{ env.ecr_image_tag }}
-        run: ./ecr_query.sh $ECR_REPOSITORY $IMAGE_TAG
+        run: |
+            chmod +x ./ecr_query.sh
+            ./ecr_query.sh $ECR_REPOSITORY $IMAGE_TAG
         working-directory: scripts
 
       - name: Build, tag, and push image to Amazon ECR

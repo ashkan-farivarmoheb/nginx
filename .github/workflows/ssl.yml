@@ -40,10 +40,9 @@ jobs:
         with:
           script: |
             const branch = context.ref.split('/').pop()
-            const ecr_repository = nginx;
             const { owner, repo } = context.repo;
             core.exportVariable('BRANCH', branch);
-            core.exportVariable('ecr_repository', ecr_repository);  
+            core.exportVariable('ecr_repository', 'nginx');  
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1

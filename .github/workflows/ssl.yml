@@ -40,7 +40,7 @@ jobs:
         with:
           script: |
             const branch = context.ref.split('/').pop()
-            const ecr_repository = `${process.env.service_name}-${process.env.service_version}`;
+            const ecr_repository = nginx;
             const { owner, repo } = context.repo;
             core.exportVariable('BRANCH', branch);
             core.exportVariable('ecr_repository', ecr_repository);  
@@ -59,7 +59,7 @@ jobs:
       - name: Set ecr_image_tag
         id: set-ecr-image-tag
         run: |
-          ecr_image_tag="main-${{ inputs.github_sha }}"
+          ecr_image_tag="main-${{github.sha}}"
           echo "ecr_image_tag=$ecr_image_tag" >> "$GITHUB_ENV"
 
       - name: Check the image exists in ECR

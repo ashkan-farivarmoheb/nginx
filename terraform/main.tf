@@ -9,7 +9,7 @@ resource "null_resource" "run_shell_script" {
     command = <<EOT
       #!/bin/bash
       chmod +x ../ssl/ssl.sh
-      ../ssl/ssl.sh erp.tisol.com.au
+      ../ssl/ssl.sh ${var.domain_name}
     EOT
   }
 

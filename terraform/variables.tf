@@ -13,3 +13,8 @@ variable "bucket_name" {
     description = "ssl bucket name"
     type = string
 }
+
+variable "domain_name" {
+  description = "domain name to create a ssl"
+  type = string
+}

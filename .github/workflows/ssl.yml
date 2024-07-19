@@ -6,10 +6,13 @@ on:
       target-env:
         required: true
         type: string
+      domain:
+        required: true
+        type: string
 
   workflow_call:
     inputs:
-      target-env:
+      domain:
         required: true
         type: string
 
@@ -25,7 +28,7 @@ on:
 
 jobs:
   deploy:
-    name: Create a SSL for ${{ inputs.target-env }}
+    name: Create a SSL for ${{ inputs.domain }}
     permissions:
       contents: none
     runs-on: ubuntu-latest

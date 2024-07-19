@@ -1,0 +1,107 @@
+name: Create SSL
+
+on:
+  workflow_dispatch: # Enable manual triggering
+    inputs:
+      target-env:
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      target-env:
+        required: true
+        type: string
+
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  deploy:
+    name: Create a SSL for ${{ inputs.target-env }}
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.target-env }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Variables
+        id: vars
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const branch = context.ref.split('/').pop()
+            const ecr_repository = `${process.env.service_name}-${process.env.service_version}`;
+            const { owner, repo } = context.repo;
+            core.exportVariable('BRANCH', branch);
+            core.exportVariable('ecr_repository', ecr_repository);  
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set ecr_image_tag
+        id: set-ecr-image-tag
+        run: |
+          ecr_image_tag="main-${{ inputs.github_sha }}"
+          echo "ecr_image_tag=$ecr_image_tag" >> "$GITHUB_ENV"
+
+      - name: Check the image exists in ECR
+        id: ecr-image-exists
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ecr_repository }}
+          IMAGE_TAG: ${{ env.ecr_image_tag }}
+        run: ./ecr_query.sh $ECR_REPOSITORY $IMAGE_TAG
+        working-directory: scripts
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ecr_repository }}
+          IMAGE_TAG: ${{ env.ecr_image_tag }}
+        if: steps.ecr-image-exists.outputs.image_tag == ''
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.1.0  # Specify the Terraform version to use
+
+      - name: Initialize Terraform
+        run: terraform init -backend-config=hcl/backend.hcl
+        working-directory: terraform
+        
+      - name: Validate Terraform configuration
+        run: terraform validate
+        working-directory: terraform
+        
+      - name: Plan Terraform changes
+        run: terraform plan -var-file=tfvars/main.auto.tfvars
+        working-directory: terraform
+        
+      - name: Apply Terraform changes
+        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars
+        working-directory: terraform

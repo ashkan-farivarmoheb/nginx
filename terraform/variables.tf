@@ -18,3 +18,8 @@ variable "domain_name" {
   description = "domain name to create a ssl"
   type = string
 }
+
+variable "folder_name" {
+  description = "folder name to place ssl files"
+  type = string
+}

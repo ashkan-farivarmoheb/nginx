@@ -43,5 +43,5 @@ resource "aws_s3_object" "upload_files" {
   source = "../ssl/${each.value}"
   acl    = "private"
 
-  depends_on = [null_resource.list_files]
+  depends_on = [null_resource.run_shell_script, null_resource.list_files]
 }

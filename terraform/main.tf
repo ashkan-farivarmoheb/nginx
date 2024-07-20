@@ -4,6 +4,19 @@ resource "aws_s3_bucket" "my_bucket" {
   acl = "private"
 }
 
+resource "null_resource" "run_shell_script" {
+  provisioner "local-exec" {
+    command = <<EOT
+      #!/bin/bash
+      cd ../ssl
+      chmod +x ./ssl.sh
+      ./ssl.sh ${var.domain_name}
+    EOT
+  }
+
+  depends_on = [aws_s3_bucket.my_bucket]
+}
+
 resource "null_resource" "list_files" {
   provisioner "local-exec" {
     command = "cd ../ssl && ls -l"

@@ -26,7 +26,7 @@ resource "null_resource" "list_files" {
 }
 
 locals {
-  conf_files = fileset("../ssl", "*.conf")
+  conf_files = fileset(".", "*.conf")
   crt_files  = fileset("../ssl", "*.crt")
   key_files  = fileset("../ssl", "*.key")
   pem_files  = fileset("../ssl", "*.pem")
@@ -40,6 +40,7 @@ resource "aws_s3_bucket_object" "upload_files" {
 
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "${var.folder_name}/${each.value}"
+  # source = "../ssl/${each.value}"
   source = "../ssl/${each.value}"
   acl    = "private"
 

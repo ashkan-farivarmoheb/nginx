@@ -36,6 +36,10 @@ locals {
 }
 
 resource "aws_s3_object" "upload_files" {
+  provisioner "local-exec" {
+    command = "cd ../ssl"
+  }
+
   for_each = toset(local.all_files)
 
   bucket = aws_s3_bucket.my_bucket.bucket

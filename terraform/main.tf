@@ -1,47 +1,7 @@
 
 resource "aws_s3_bucket" "my_bucket" {
   bucket = var.bucket_name
-  force_destroy = true
-
-  policy = jsonencode({
-  "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "s3:CreateBucket",
-          "s3:PutBucketPolicy",
-          "s3:PutObject",
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:DeleteObject",
-          "s3:GetBucketLocation"
-        ],
-        "Resource": [
-          "arn:aws:s3:::${var.bucket_name}",
-          "arn:aws:s3:::${var.bucket_name}/*"
-        ]
-      }
-    ]
-  })
-}
-
-resource "aws_s3_bucket_acl" "my_bucket_acl" {
-  bucket = aws_s3_bucket.my_bucket.id
-  acl    = "private"
-}
-
-resource "null_resource" "run_shell_script" {
-  provisioner "local-exec" {
-    command = <<EOT
-      #!/bin/bash
-      cd ../ssl
-      chmod +x ./ssl.sh
-      ./ssl.sh ${var.domain_name}
-    EOT
-  }
-
-  depends_on = [aws_s3_bucket.my_bucket]
+  acl = "private"
 }
 
 resource "null_resource" "list_files" {

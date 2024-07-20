@@ -86,11 +86,11 @@ jobs:
         working-directory: terraform
         
       - name: Plan Terraform changes
-        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="folder_name=${{ env.ecr_image_tag }}
+        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="folder_name=${{ env.ecr_image_tag }}"
         working-directory: terraform
         
       - name: Apply Terraform changes
-        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="folder_name=${{ env.ecr_image_tag }}
+        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="folder_name=${{ env.ecr_image_tag }}"
         working-directory: terraform
 
       - name: Build, tag, and push image to Amazon ECR

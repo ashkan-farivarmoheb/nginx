@@ -22,6 +22,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+env:
+  BUCKET_NAME: "nginx-ssl-bucket"
 
 jobs:
   deploy:
@@ -42,7 +44,7 @@ jobs:
             const branch = context.ref.split('/').pop()
             const { owner, repo } = context.repo;
             core.exportVariable('BRANCH', branch);
-            core.exportVariable('ecr_repository', 'nginx');  
+            core.exportVariable('ecr_repository', 'nginx');
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -86,12 +88,17 @@ jobs:
         working-directory: terraform
         
       - name: Plan Terraform changes
-        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="folder_name=${{ env.ecr_image_tag }}"
+        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=$BUCKET_NAME" -var="folder_name=${{ env.ecr_image_tag }}"
         working-directory: terraform
         
       - name: Apply Terraform changes
-        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="folder_name=${{ env.ecr_image_tag }}"
+        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=$BUCKET_NAME" -var="folder_name=${{ env.ecr_image_tag }}"
         working-directory: terraform
+
+      - name: Download SSL files from S3
+        run: |
+          aws s3 cp s3://$BUCKET_NAME/${{ env.ecr_image_tag }}/erp.tisol.com.au.crt ssl/erp.tisol.com.au.crt
+          aws s3 cp s3://$BUCKET_NAME/${{ env.ecr_image_tag }}/erp.tisol.com.au.key ssl/erp.tisol.com.au.key
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image

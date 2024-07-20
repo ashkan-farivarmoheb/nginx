@@ -4,13 +4,23 @@ resource "aws_s3_bucket" "my_bucket" {
   force_destroy = true
 
   policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
+  "Version": "2012-10-17",
+    "Statement": [
       {
-        Effect   = "Allow"
-        Principal = "*"
-        Action   = "s3:GetObject"
-        Resource = "arn:aws:s3:::${var.bucket_name}/*"
+        "Effect": "Allow",
+        "Action": [
+          "s3:CreateBucket",
+          "s3:PutBucketPolicy",
+          "s3:PutObject",
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:GetBucketLocation"
+        ],
+        "Resource": [
+          "arn:aws:s3:::${var.bucket_name}",
+          "arn:aws:s3:::${var.bucket_name}/*"
+        ]
       }
     ]
   })

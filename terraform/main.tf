@@ -17,14 +17,6 @@ resource "null_resource" "run_shell_script" {
   depends_on = [aws_s3_bucket.my_bucket]
 }
 
-resource "null_resource" "list_files" {
-  provisioner "local-exec" {
-    command = "cd ../ssl && ls -l"
-  }
-
-  depends_on = [null_resource.run_shell_script]
-}
-
 locals {
   conf_files = fileset("../ssl", "*.conf")
   crt_files  = fileset("../ssl", "*.crt")
@@ -47,5 +39,5 @@ resource "aws_s3_object" "upload_files" {
   source = "../ssl/${each.value}"
   acl    = "private"
 
-  depends_on = [null_resource.run_shell_script, null_resource.list_files]
+  depends_on = [null_resource.run_shell_script]
 }

@@ -25,14 +25,6 @@ resource "null_resource" "list_files" {
   depends_on = [null_resource.run_shell_script]
 }
 
-resource "null_resource" "pwd" {
-  provisioner "local-exec" {
-    command = "pwd"
-  }
-
-  depends_on = [null_resource.list_files]
-}
-
 locals {
   conf_files = fileset("../ssl", "*.conf")
   crt_files  = fileset("../ssl", "*.crt")

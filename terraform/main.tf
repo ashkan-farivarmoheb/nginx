@@ -1,6 +1,10 @@
 
 resource "aws_s3_bucket" "my_bucket" {
   bucket = var.bucket_name
+}
+
+resource "aws_s3_bucket_acl" "my_bucket_acl" {
+  bucket = aws_s3_bucket.my_bucket.id
   acl    = "private"
 }
 
@@ -43,7 +47,7 @@ locals {
   all_files  = flatten([local.conf_files, local.crt_files, local.key_files, local.pem_files, local.csr_files, local.srl_files])
 }
 
-resource "aws_s3_bucket_object" "upload_files" {
+resource "aws_s3_object" "upload_files" {
   for_each = toset(local.all_files)
 
   bucket = aws_s3_bucket.my_bucket.bucket

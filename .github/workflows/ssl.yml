@@ -98,6 +98,9 @@ jobs:
         run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.folder_name }}"
         working-directory: terraform
 
+      - name: List Uploaded Files
+        run: aws s3 ls s3://${{ env.bucket_name }}/${{ env.folder_name }}/
+
       - name: Download SSL files from S3
         run: |
           aws s3 cp s3://${{ env.bucket_name }}/${{ env.ecr_image_tag }}/erp.tisol.com.au.crt ssl/erp.tisol.com.au.crt

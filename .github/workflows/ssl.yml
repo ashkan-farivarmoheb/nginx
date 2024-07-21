@@ -98,6 +98,10 @@ jobs:
         run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.folder_name }}"
         working-directory: terraform
 
+      - name: Output uploaded files
+        run: |
+          echo "Uploaded files: ${{ steps.terraform.outputs.uploaded_files }}"
+
       - name: List Uploaded Files
         run: aws s3 ls s3://${{ env.bucket_name }}/${{ env.folder_name }}/
 
@@ -105,10 +109,6 @@ jobs:
         run: |
           aws s3 cp s3://${{ env.bucket_name }}/${{ env.ecr_image_tag }}/erp.tisol.com.au.crt ssl/erp.tisol.com.au.crt
           aws s3 cp s3://${{ env.bucket_name }}/${{ env.ecr_image_tag }}/erp.tisol.com.au.key ssl/erp.tisol.com.au.key
-
-      - name: Output uploaded files
-        run: |
-          echo "Uploaded files: ${{ steps.terraform.outputs.uploaded_files }}"
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image

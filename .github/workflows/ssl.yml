@@ -98,29 +98,12 @@ jobs:
         run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.folder_name }}"
         working-directory: terraform
 
-      - name: Output uploaded files
+      - name: Upload SSL files to S3
         run: |
-          echo "Uploaded conf files: ${{ steps.terraform.outputs.upload_files }}"
+          aws s3 cp ssl s3://${{ env.bucket_name }}/${{ env.folder_name }}/ --recursive
 
       - name: List Uploaded Files
         run: aws s3 ls s3://${{ env.bucket_name }}/${{ env.folder_name }}/
-
-      - name: Upload SSL files to S3
-        run: |
-          pwd
-          ls -l
-          aws s3 cp ssl/cert.conf s3://${{ env.bucket_name }}/${{ env.folder_name }}/cert.conf
-          aws s3 cp ssl/csr.conf s3://${{ env.bucket_name }}/${{ env.folder_name }}/csr.conf
-          aws s3 cp ssl/example.tisol.com.au.crt s3://${{ env.bucket_name }}/${{ env.folder_name }}/example.tisol.com.au.crt
-          aws s3 cp ssl/example.tisol.com.au.csr s3://${{ env.bucket_name }}/${{ env.folder_name }}/example.tisol.com.au.csr
-          aws s3 cp ssl/example.tisol.com.au.key s3://${{ env.bucket_name }}/${{ env.folder_name }}/example.tisol.com.au.key
-          aws s3 cp ssl/rootCA.crt s3://${{ env.bucket_name }}/${{ env.folder_name }}/rootCA.crt
-          aws s3 cp ssl/rootCA.key s3://${{ env.bucket_name }}/${{ env.folder_name }}/rootCA.key
-
-      - name: Download SSL files from S3
-        run: |
-          aws s3 cp s3://${{ env.bucket_name }}/${{ env.folder_name }}/erp.tisol.com.au.crt ssl/erp.tisol.com.au.crt
-          aws s3 cp s3://${{ env.bucket_name }}/${{ env.folder_name }}/erp.tisol.com.au.key ssl/erp.tisol.com.au.key
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
@@ -130,6 +113,6 @@ jobs:
           IMAGE_TAG: ${{ env.ecr_image_tag }}
         if: steps.ecr-image-exists.outputs.image_tag == ''
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg DOMAIN=${{ inputs.domain }} .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"

@@ -6,6 +6,6 @@ output "folder_name" {
   value = "${var.folder_name}"
 }
 
-output "uploaded_files" {
-  value = [for obj in aws_s3_object.upload_files : obj.key]
-}
+# output "uploaded_files" {
+#   value = [for obj in aws_s3_object.upload_files : obj.key]
+# }

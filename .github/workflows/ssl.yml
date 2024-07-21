@@ -105,6 +105,18 @@ jobs:
       - name: List Uploaded Files
         run: aws s3 ls s3://${{ env.bucket_name }}/${{ env.folder_name }}/
 
+      - name: Upload SSL files to S3
+        run: |
+          pwd
+          ls -l
+          aws s3 cp ../ssl/cert.conf s3://${{ env.bucket_name }}/${{ env.folder_name }}/cert.conf
+          aws s3 cp ../ssl/csr.conf s3://${{ env.bucket_name }}/${{ env.folder_name }}/csr.conf
+          aws s3 cp ../ssl/example.tisol.com.au.crt s3://${{ env.bucket_name }}/${{ env.folder_name }}/example.tisol.com.au.crt
+          aws s3 cp ../ssl/example.tisol.com.au.csr s3://${{ env.bucket_name }}/${{ env.folder_name }}/example.tisol.com.au.csr
+          aws s3 cp ../ssl/example.tisol.com.au.key s3://${{ env.bucket_name }}/${{ env.folder_name }}/example.tisol.com.au.key
+          aws s3 cp ../ssl/rootCA.crt s3://${{ env.bucket_name }}/${{ env.folder_name }}/rootCA.crt
+          aws s3 cp ../ssl/rootCA.key s3://${{ env.bucket_name }}/${{ env.folder_name }}/rootCA.key
+
       - name: Download SSL files from S3
         run: |
           aws s3 cp s3://${{ env.bucket_name }}/${{ env.folder_name }}/erp.tisol.com.au.crt ssl/erp.tisol.com.au.crt

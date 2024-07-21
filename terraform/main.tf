@@ -14,18 +14,7 @@ resource "null_resource" "run_shell_script" {
       ls -l # List files to confirm they were created
     EOT
   }
-
   depends_on = [aws_s3_bucket.my_bucket]
-}
-
-locals {
-  conf_files = fileset("../ssl", "*.conf")
-  crt_files  = fileset("../ssl", "*.crt")
-  key_files  = fileset("../ssl", "*.key")
-  pem_files  = fileset("../ssl", "*.pem")
-  csr_files  = fileset("../ssl", "*.csr")
-  srl_files  = fileset("../ssl", "*.srl")
-  all_files  = flatten([local.conf_files, local.crt_files, local.key_files, local.pem_files, local.csr_files, local.srl_files])
 }
 
 resource "aws_s3_object" "upload_files" {

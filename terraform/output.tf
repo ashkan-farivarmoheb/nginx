@@ -5,3 +5,7 @@ output "nginx-tag" {
 output "bucket_name" {
   value = aws_s3_bucket.my_bucket.bucket
 }
+
+output "uploaded_files" {
+  value = aws_s3_object.upload_files.*.key
+}

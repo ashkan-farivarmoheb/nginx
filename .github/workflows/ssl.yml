@@ -64,7 +64,7 @@ jobs:
       
       - name: Generate Unique Folder Name
         id: folder_name
-        run: echo "folder_name=main-${{ env.ecr_image_tag }}-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+        run: echo "folder_name=${{ env.ecr_image_tag }}-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
       - name: Check the image exists in ECR
         id: ecr-image-exists
@@ -102,6 +102,10 @@ jobs:
         run: |
           aws s3 cp s3://${{ env.bucket_name }}/${{ env.ecr_image_tag }}/erp.tisol.com.au.crt ssl/erp.tisol.com.au.crt
           aws s3 cp s3://${{ env.bucket_name }}/${{ env.ecr_image_tag }}/erp.tisol.com.au.key ssl/erp.tisol.com.au.key
+
+      - name: Output uploaded files
+        run: |
+          echo "Uploaded files: ${{ steps.terraform.outputs.uploaded_files }}"
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image

@@ -61,6 +61,10 @@ jobs:
         run: |
           ecr_image_tag="main-${{github.sha}}"
           echo "ecr_image_tag=$ecr_image_tag" >> "$GITHUB_ENV"
+      
+      - name: Generate Unique Folder Name
+        id: folder_name
+        run: echo "folder_name=main-${{ env.ecr_image_tag }}-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
       - name: Check the image exists in ECR
         id: ecr-image-exists
@@ -87,11 +91,11 @@ jobs:
         working-directory: terraform
         
       - name: Plan Terraform changes
-        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.ecr_image_tag }}"
+        run: terraform plan -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.folder_name }}"
         working-directory: terraform
         
       - name: Apply Terraform changes
-        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.ecr_image_tag }}"
+        run: terraform apply -auto-approve -var-file=tfvars/main.auto.tfvars -var="domain_name=${{ inputs.domain }}" -var="bucket_name=${{ env.bucket_name }}" -var="folder_name=${{ env.folder_name }}"
         working-directory: terraform
 
       - name: Download SSL files from S3

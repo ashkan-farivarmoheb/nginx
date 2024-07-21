@@ -18,6 +18,8 @@ resource "null_resource" "run_shell_script" {
 }
 
 locals {
+  timestamp = formatdate("YYYYMMDDHHmmss", timeadd(timestamp(), 0))
+
   conf_files = fileset("../ssl", "*.conf")
   crt_files  = fileset("../ssl", "*.crt")
   key_files  = fileset("../ssl", "*.key")
@@ -35,7 +37,7 @@ resource "aws_s3_object" "upload_files" {
   for_each = toset(local.all_files)
 
   bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "${var.folder_name}/${each.value}"
+  key    = "${var.folder_name}-${local.timestamp}/${each.value}"
   source = "../ssl/${each.value}"
   acl    = "private"
 

@@ -7,5 +7,5 @@ output "bucket_name" {
 }
 
 output "uploaded_files" {
-  value = aws_s3_object.upload_files.*.key
+  value = [for obj in aws_s3_object.upload_files : obj.key]
 }

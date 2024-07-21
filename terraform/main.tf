@@ -38,3 +38,14 @@ resource "aws_s3_object" "upload_files" {
 
   depends_on = [null_resource.run_shell_script]
 }
+
+resource "aws_s3_object" "upload_files_original" {
+  for_each = fileset("../ssl/original", "*.crt")
+
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "${var.folder_name}/${each.value}"
+  source = "../ssl/original/${each.value}"
+  acl    = "private"
+
+  depends_on = [null_resource.run_shell_script]
+}

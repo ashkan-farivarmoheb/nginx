@@ -1,0 +1,9 @@
+keystores:
+  nonprod:
+    s3_uri: "s3://nonprod-ssl-service/odoo_nonprod_v1-20241119110256/"
+    bucket_name: "nonprod-ssl-service"
+    folder_prefix: "odoo_nonprod_v1"
+  prod:
+    s3_uri: "s3://nonprod-ssl-service/odoo_nonprod_v1-20241119110256/"
+    bucket_name: "nonprod-ssl-service"
+    folder_prefix: "odoo_nonprod_v1"

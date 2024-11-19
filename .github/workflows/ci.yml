@@ -1,0 +1,102 @@
+name: Nginx Image
+
+on:
+  workflow_call:
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  deploy:
+    name: Create a nginx image in ECR
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install yq (YAML parser)
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+          
+      - name: Parse Config File
+        id: parse_config
+        run: |
+          config_file=".github/configs/app_conf.yml"
+          s3_uri_nonprod=$(yq eval ".nonprod.s3_uri" $config_file)
+          s3_uri_prod=$(yq eval ".prod.s3_uri" $config_file)
+          ecr_repository=nginx
+          bucket_name=nginx-ssl-bucket
+          echo "s3_uri_nonprod=$s3_uri_nonprod" >> $GITHUB_ENV
+          echo "s3_uri_prod=$s3_uri_prod" >> $GITHUB_ENV
+          echo "ecr_repository=$ecr_repository" >> $GITHUB_ENV
+          echo "bucket_name=$bucket_name" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set ecr_image_tag
+        id: set-ecr-image-tag
+        run: |
+          ecr_image_tag="main-${{github.sha}}"
+          echo "ecr_image_tag=$ecr_image_tag" >> "$GITHUB_ENV"
+
+      - name: Check the image exists in ECR
+        id: ecr-image-exists
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ecr_repository }}
+          IMAGE_TAG: ${{ env.ecr_image_tag }}
+        run: |
+            chmod +x ./ecr_query.sh
+            ./ecr_query.sh $ECR_REPOSITORY $IMAGE_TAG
+        working-directory: scripts
+
+      - name: Create Download Directory
+        run: mkdir -p downloads/{nonprod,prod}
+
+      - name: Download nonprod certs from S3
+        uses: aws-actions/amazon-s3-github-actions@v1
+        with:
+          args: "cp ${{ env.s3_uri_nonprod }} ./downloads/nonprod --recursive"
+
+      - name: Download prod certs from S3
+        uses: aws-actions/amazon-s3-github-actions@v1
+        with:
+          args: "cp ${{ env.s3_uri_prod }} ./downloads/prod --recursive"
+
+      - name: Remove unnecessary nonprod certs 
+        run: rm ./downloads/nonprod/root*
+
+      - name: Remove unnecessary prod certs 
+        run: rm ./downloads/prod/root*
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ecr_repository }}
+          IMAGE_TAG: ${{ env.ecr_image_tag }}
+        if: steps.ecr-image-exists.outputs.image_tag == ''
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"

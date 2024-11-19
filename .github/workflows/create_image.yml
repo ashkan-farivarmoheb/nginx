@@ -25,8 +25,8 @@ jobs:
         id: parse_config
         run: |
           config_file=".github/configs/app_conf.yml"
-          s3_uri_nonprod=$(yq eval ".nonprod.s3_uri" $config_file)
-          s3_uri_prod=$(yq eval ".prod.s3_uri" $config_file)
+          s3_uri_nonprod=$(yq eval ".keystores.nonprod.s3_uri" $config_file)
+          s3_uri_prod=$(yq eval ".keystores.prod.s3_uri" $config_file)
           ecr_repository=nginx
           bucket_name=nginx-ssl-bucket
           echo "s3_uri_nonprod=$s3_uri_nonprod" >> $GITHUB_ENV

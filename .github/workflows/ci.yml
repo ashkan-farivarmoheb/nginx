@@ -1,16 +1,8 @@
 name: Nginx Image
 
 on:
-  workflow_call:
-    secrets:
-      AWS_REGION:
-        required: true
-      AWS_ACCOUNT_ID:
-        required: true
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
+  push:
+    branches: [ "main" ]
 
 jobs:
   deploy:

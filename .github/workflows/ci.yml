@@ -66,20 +66,14 @@ jobs:
         run: mkdir -p downloads/{nonprod,prod}
 
       - name: Download nonprod certs from S3
-        uses: aws-actions/amazon-s3-github-actions@v1
-        with:
-          args: "cp ${{ env.s3_uri_nonprod }} ./downloads/nonprod --recursive"
+        run: |
+          aws s3 cp  ${{ env.s3_uri_nonprod }} ./downloads/nonprod --recursive
+          rm ./downloads/nonprod/root*
 
-      - name: Download prod certs from S3
-        uses: aws-actions/amazon-s3-github-actions@v1
-        with:
-          args: "cp ${{ env.s3_uri_prod }} ./downloads/prod --recursive"
-
-      - name: Remove unnecessary nonprod certs 
-        run: rm ./downloads/nonprod/root*
-
-      - name: Remove unnecessary prod certs 
-        run: rm ./downloads/prod/root*
+      - name: Download nonprod certs from S3
+        run: |
+          aws s3 cp  ${{ env.s3_uri_prod }} ./downloads/prod --recursive
+          rm ./downloads/prod/root*
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image

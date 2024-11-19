@@ -1,7 +1,6 @@
 name: Nginx Image
 
 on:
-  workflow_dispatch: # Enable manual triggering
   workflow_call:
     secrets:
       AWS_REGION:
